@@ -245,6 +245,7 @@
     function downloadCsv(sensorData, startTime, stopTime) {
         const timeTotal = stopTime - startTime;
         let csv = 'Acc [g]';
+        csv += `,Dane, ${sensorData.length}`;
         csv += `,Start, ${startTime}`;
         csv += `,Stop, ${stopTime}`;
         csv += `,Time, ${timeTotal}\n`;
