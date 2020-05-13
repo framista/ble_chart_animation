@@ -6,7 +6,7 @@
         padding: 0;
         box-sizing: border-box;
     }
-    
+
     .container {
         width: 100vw;
         min-height: 100vh;
@@ -38,7 +38,7 @@
         font-weight: bold;
         font-size: 16px;
         cursor: pointer;
-        min-width: 80px;
+        min-width: 100px;
     }
 
     button:hover {
@@ -78,7 +78,6 @@
         left: 50%;
         transform: translate(-50%, -50%);
     }
-
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
@@ -88,7 +87,6 @@
         <button id="connectBtn">Połącz</button>
         <button id="startBtn" disabled>Start</button>
         <button id="stopBtn" disabled>Stop</button>
-        <button id="chartBtn" disabled>Wykres</button>
         <button id="downloadBtn" disabled>Pobierz</button>
     </div>
     <div class="chart">
@@ -107,17 +105,24 @@
     let startTime;
     let stopTime;
     let chart;
+    const animation =
+        `<div class="box--animation">
+            <div class="path"></div>
+            <div class="nature"></div>
+            <div class="rider">
+                <img src="./rider.svg">
+            </div>
+            <div class="wheel">
+                <img src="./wheel.svg" class="wheel--back">
+                <img src="./wheel.svg" class="wheel--front">
+            </div>
+        </div>`
     document.querySelector('#connectBtn').addEventListener('click', () => {
         if (isWebBluetoothEnabled()) { read() }
     })
-    document.querySelector('#startBtn').addEventListener('click', event => {
-        if (isWebBluetoothEnabled()) { start() }
-    })
-    document.querySelector('#stopBtn').addEventListener('click', event => {
-        if (isWebBluetoothEnabled()) { stop() }
-    })
-    document.querySelector('#chartBtn').addEventListener('click', () => createChart());
-    document.querySelector('#downloadBtn').addEventListener('click', () => downloadCsv(sensor, startTime, stopTime))
+    document.querySelector('#startBtn').addEventListener('click', event => start());
+    document.querySelector('#stopBtn').addEventListener('click', event => stop());
+    document.querySelector('#downloadBtn').addEventListener('click', () => downloadCsv(sensor, startTime, stopTime));
 
     function isWebBluetoothEnabled() {
         if (!navigator.bluetooth) {
@@ -138,7 +143,7 @@
         return navigator.bluetooth.requestDevice(options).then(device => {
             bluetoothDeviceDetected = device
         }).catch(error => {
-            console.log('Requesting error: ' + error)
+            console.log('[ERROR] Requesting error: ' + error)
         })
     }
 
@@ -150,7 +155,7 @@
                 return gattCharacteristic.readValue()
             })
             .catch(error => {
-                console.log('Waiting to start reading: ' + error)
+                console.log('[ERROR] Waiting to start reading: ' + error)
             })
     }
 
@@ -187,34 +192,20 @@
         if (chart) {
             removeData(chart);
         }
-        document.querySelector(".chart").innerHTML =
-            `<div class="box--animation">
-                <div class="path"></div>
-                <div class="nature"></div>
-                <div class="rider">
-                    <img src="./rider.svg">
-                </div>
-                <div class="wheel">
-                    <img src="./wheel.svg" class="wheel--back">
-                    <img src="./wheel.svg" class="wheel--front">
-                </div>
-            </div>`
+        document.querySelector(".chart").innerHTML = animation;
+
         gattCharacteristic.startNotifications()
-            .then(_ => {
+            .then(() => {
                 console.log('Start reading...')
                 disableButtons();
             })
             .catch(error => {
                 console.log('[ERROR] Start: ' + error)
             })
-
-
-
     }
 
     function stop() {
         document.querySelector(".chart").innerHTML = `<canvas id="chart"></canvas> `
-
         stopTime = Date.now();
         gattCharacteristic.stopNotifications()
             .then(_ => {
@@ -224,11 +215,11 @@
             .catch(error => {
                 console.log('[ERROR] Stop: ' + error)
             })
+        createChart();
     }
 
     function enableButtons() {
         document.querySelector('#startBtn').disabled = false
-        document.querySelector('#chartBtn').disabled = false
         document.querySelector('#downloadBtn').disabled = false
         document.querySelector('#startBtn').disabled = false
         document.querySelector('#stopBtn').disabled = true
@@ -236,7 +227,6 @@
 
     function disableButtons() {
         document.querySelector('#startBtn').disabled = true
-        document.querySelector('#chartBtn').disabled = true
         document.querySelector('#downloadBtn').disabled = true
         document.querySelector('#startBtn').disabled = true
         document.querySelector('#stopBtn').disabled = false
@@ -294,14 +284,6 @@
                 }
             },
         })
-    }
-
-    function removeData() {
-        chart.data.labels.pop();
-        chart.data.datasets.forEach((dataset) => {
-            dataset.data.pop();
-        });
-        chart.update();
     }
 
 </script>
