@@ -4,6 +4,7 @@
         padding: 0;
         box-sizing: border-box;
     }
+
     .container {
         width: 100vw;
         min-height: 100vh;
@@ -15,12 +16,14 @@
         background-image: url("./backgroundBike.jpg");
         background-repeat: repeat;
     }
+
     .menu {
         width: 100vw;
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
     }
+
     button {
         margin: 10px;
         padding: 10px 20px;
@@ -34,19 +37,23 @@
         cursor: pointer;
         min-width: 80px;
     }
+
     button:hover {
         background-color: white;
         color: #008F7A;
     }
+
     button:disabled {
         background-color: grey;
         border: 2px solid grey;
     }
+
     button:disabled:hover {
         background-color: grey;
         border: 2px solid grey;
         color: white;
     }
+
     .chart {
         width: 80%;
         min-width: 250px;
@@ -59,6 +66,7 @@
         border-radius: 10px;
         border: 2px solid #008F7A;
     }
+
     #chart {
         width: 90%;
         height: 90%;
@@ -77,7 +85,7 @@
         <button id="startBtn" disabled>Start</button>
         <button id="stopBtn" disabled>Stop</button>
         <button id="chartBtn" disabled>Wykres</button>
-        <button onclick="downloadCsv(sensor)" disabled>Download</button>
+        <button id="downloadBtn" disabled>Download</button>
     </div>
     <div class="chart">
         <canvas id="chart"></canvas>
@@ -86,27 +94,26 @@
 
 
 <script>
-    const deviceName = 'BlueNRG'
-    const bleService = '02366e80-cf3a-11e1-9ab4-0002a5d5c51b'
-    const bleCharacteristic = '340a1b80-cf4b-11e1-ac36-0002a5d5c51b'
+    const deviceName = 'BlueNRG';
+    const bleService = '02366e80-cf3a-11e1-9ab4-0002a5d5c51b';
+    const bleCharacteristic = '340a1b80-cf4b-11e1-ac36-0002a5d5c51b';
     var bluetoothDeviceDetected
     var gattCharacteristic
     let sensor = [];
+    let startTime;
+    let stopTime;
+    let chart;
     document.querySelector('#connectBtn').addEventListener('click', () => {
         if (isWebBluetoothEnabled()) { read() }
     })
     document.querySelector('#startBtn').addEventListener('click', event => {
-        if (isWebBluetoothEnabled()) {
-            console.log("Rozpoczęto pomiar")
-            start()
-        }
+        if (isWebBluetoothEnabled()) { start() }
     })
     document.querySelector('#stopBtn').addEventListener('click', event => {
         if (isWebBluetoothEnabled()) { stop() }
     })
-    document.querySelector('#chartBtn').addEventListener('click', () => {
-        createChart();
-    });
+    document.querySelector('#chartBtn').addEventListener('click', () => createChart());
+    document.querySelector('#downloadBtn').addEventListener('click', () => downloadCsv(sensor, startTime, stopTime))
 
     function isWebBluetoothEnabled() {
         if (!navigator.bluetooth) {
@@ -127,7 +134,7 @@
         return navigator.bluetooth.requestDevice(options).then(device => {
             bluetoothDeviceDetected = device
         }).catch(error => {
-            console.log('Argh! ' + error)
+            console.log('Requesting error: ' + error)
         })
     }
 
@@ -161,7 +168,7 @@
                 gattCharacteristic.addEventListener('characteristicvaluechanged',
                     handleChangedValue)
                 document.querySelector('#startBtn').disabled = false
-                document.querySelector('#stopBtn').disabled = true
+                document.querySelector('#connectBtn').disabled = true
             })
     }
 
@@ -171,11 +178,14 @@
     }
 
     function start() {
+        sensor = [];
+        startTime = Date.now();
+        if (chart)
+            removeData(chart);
         gattCharacteristic.startNotifications()
             .then(_ => {
                 console.log('Start reading...')
-                document.querySelector('#startBtn').disabled = true
-                document.querySelector('#stopBtn').disabled = false
+                disableButtons();
             })
             .catch(error => {
                 console.log('[ERROR] Start: ' + error)
@@ -183,21 +193,41 @@
     }
 
     function stop() {
+        stopTime = Date.now();
         gattCharacteristic.stopNotifications()
             .then(_ => {
                 console.log('Stop reading...')
-                document.querySelector('#startBtn').disabled = false
-                document.querySelector('#stopBtn').disabled = true
+                enableButtons();
             })
             .catch(error => {
                 console.log('[ERROR] Stop: ' + error)
             })
     }
 
-    function downloadCsv(sensorData) {
-        var csv = 'Acc [g]\n';
+    function enableButtons() {
+        document.querySelector('#startBtn').disabled = false
+        document.querySelector('#chartBtn').disabled = false
+        document.querySelector('#downloadBtn').disabled = false
+        document.querySelector('#startBtn').disabled = false
+        document.querySelector('#stopBtn').disabled = true
+    }
+
+    function disableButtons() {
+        document.querySelector('#startBtn').disabled = true
+        document.querySelector('#chartBtn').disabled = true
+        document.querySelector('#downloadBtn').disabled = true
+        document.querySelector('#startBtn').disabled = true
+        document.querySelector('#stopBtn').disabled = false
+    }
+
+    function downloadCsv(sensorData, startTime, stopTime) {
+        const timeTotal = stopTime - startTime;
+        let csv = 'Acc [g]';
+        csv += `,Start, ${startTime}`;
+        csv += `,Stop, ${stopTime}`;
+        csv += `,Time, ${timeTotal}\n`;
         csv += sensorData.join("\n");
-        var hiddenElement = document.createElement('a');
+        const hiddenElement = document.createElement('a');
         hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
         hiddenElement.target = '_blank';
         hiddenElement.download = 'sensor_data.csv';
@@ -206,7 +236,7 @@
 
     function createChart() {
         const ctx = document.getElementById('chart')
-        const chart = new Chart(ctx, {
+        chart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: new Array(sensor.length).fill(1).map((el, index) => index),
@@ -217,6 +247,9 @@
                 }]
             },
             options: {
+                legend: {
+                    display: false,
+                },
                 scales: {
                     yAxes: [{
                         scaleLabel: {
@@ -238,6 +271,14 @@
                 }
             },
         })
+    }
+
+    function removeData() {
+        chart.data.labels.pop();
+        chart.data.datasets.forEach((dataset) => {
+            dataset.data.pop();
+        });
+        chart.update();
     }
 
 </script>

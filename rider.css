@@ -1,0 +1,114 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+.box--animation {
+    height: 500px;
+    width: 500px;
+    background-image: url("./sky.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    /* background-position: center; */
+    position: relative;
+    overflow: hidden;
+}
+
+.path {
+    height: 200px;
+    width: 500%;
+    display: block;
+    background-image: url("./path.svg");
+    background-size: contain;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    background-repeat: repeat-x;
+    animation: path 5s linear infinite;
+}
+
+@keyframes path {
+    100% {
+        transform: translateX(-740px);
+    }
+}
+
+.nature {
+    height: 250px;
+    width: 500%;
+    background-image: url("./nature.svg");
+    position: absolute;
+    bottom: 198px;
+    left: 0;
+    right: 0;
+    display: block;
+    z-index: 1;
+    background-repeat: repeat-x;
+    animation: nature 20s linear infinite;
+}
+
+@keyframes nature {
+    100% {
+        transform: translateX(-420px);
+    }
+}
+
+.rider {
+    width: 150px;
+    left: 50%;
+    bottom: 70px;
+    transform: translateX(-50%);
+    position: absolute;
+    z-index: 2;
+}
+
+.rider img {
+    width: 100%;
+    animation: bike 1s linear infinite;
+}
+
+@keyframes bike {
+    100% {
+        transform: translateY(-1px);
+    }
+
+    50% {
+        transform: translateY(1px);
+    }
+
+    0% {
+        transform: translateY(-1px);
+    }
+}
+
+.wheel {
+    left: 50%;
+    bottom: 120px;
+    transform: translateX(-50%);
+    position: absolute;
+    z-index: 2;
+}
+
+.wheel img {
+    width: 50px;
+    height: 50px;
+    animation: wheel 1s linear infinite;
+}
+
+@keyframes wheel {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.wheel--back {
+    left: -75px;
+    position: absolute;
+}
+
+.wheel--front {
+    left: 24px;
+    position: absolute;
+}
