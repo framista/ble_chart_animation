@@ -1,32 +1,304 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <title>Web Bluetooth nRF52</title>
-        <link rel="stylesheet" href="styles.css" />
-        <link
-            href="https://fonts.googleapis.com/css?family=Orbitron"
-            rel="stylesheet"
-        />
-        <link rel="icon" href="favicon.ico" />
-    </head>
-    <body>
-        <h1>nRF52 Dongle</h1>
-        <input class="button" type="button" id="connectButton" value="Connect" />
-        <input class="button" type="button" id="disconnectButton" value="Disconnect" />
+<link rel="stylesheet" href="rider.css" />
 
-        <hr/>
-        <br/>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-        <div id="connected">
-            <input id="colourPicker" type="color"/>
-            <br/><br/>
-            <input class="button" type="button" id="colourButton" value="Send Colour" />
-            <br/><hr/>
+    .container {
+        width: 100vw;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-evenly;
+        background-image: url("./backgroundBike.jpg");
+        background-repeat: repeat;
+    }
 
-            Device Heartbeat: <span id="deviceHeartbeat"></span>
-        </div>
+    .menu {
+        width: 100vw;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 
-        <script src="index.js" type="module"></script>
-    </body>
-</html>
+    button {
+        margin: 10px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        outline: none;
+        border: 2px solid #008F7A;
+        background-color: #008F7A;
+        color: white;
+        font-weight: bold;
+        font-size: 16px;
+        cursor: pointer;
+        min-width: 80px;
+    }
+
+    button:hover {
+        background-color: white;
+        color: #008F7A;
+    }
+
+    button:disabled {
+        background-color: grey;
+        border: 2px solid grey;
+    }
+
+    button:disabled:hover {
+        background-color: grey;
+        border: 2px solid grey;
+        color: white;
+    }
+
+    .chart {
+        width: 80%;
+        min-width: 250px;
+        max-width: 970px;
+        max-height: 480px;
+        height: 500px;
+        position: relative;
+        padding: 10px 10px;
+        background: white;
+        border-radius: 10px;
+        border: 2px solid #008F7A;
+    }
+
+    #chart {
+        width: 90%;
+        height: 90%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+
+<div class="container">
+    <div class="menu">
+        <button id="connectBtn">Połącz</button>
+        <button id="startBtn" disabled>Start</button>
+        <button id="stopBtn" disabled>Stop</button>
+        <button id="chartBtn" disabled>Wykres</button>
+        <button id="downloadBtn" disabled>Pobierz</button>
+    </div>
+    <div class="chart">
+        <canvas id="chart"></canvas>
+    </div>
+</div>
+
+
+<script>
+    const deviceName = 'BlueNRG';
+    const bleService = '02366e80-cf3a-11e1-9ab4-0002a5d5c51b';
+    const bleCharacteristic = '340a1b80-cf4b-11e1-ac36-0002a5d5c51b';
+    var bluetoothDeviceDetected
+    var gattCharacteristic
+    let sensor = [];
+    let startTime;
+    let stopTime;
+    let chart;
+    document.querySelector('#connectBtn').addEventListener('click', () => {
+        if (isWebBluetoothEnabled()) { read() }
+    })
+    document.querySelector('#startBtn').addEventListener('click', event => {
+        if (isWebBluetoothEnabled()) { start() }
+    })
+    document.querySelector('#stopBtn').addEventListener('click', event => {
+        if (isWebBluetoothEnabled()) { stop() }
+    })
+    document.querySelector('#chartBtn').addEventListener('click', () => createChart());
+    document.querySelector('#downloadBtn').addEventListener('click', () => downloadCsv(sensor, startTime, stopTime))
+
+    function isWebBluetoothEnabled() {
+        if (!navigator.bluetooth) {
+            console.log('Web Bluetooth API is not available in this browser!')
+            return false
+        }
+        return true
+    }
+
+    function getDeviceInfo() {
+        let options = {
+            optionalServices: [bleService],
+            filters: [
+                { "name": deviceName }
+            ]
+        }
+        console.log('Requesting any Bluetooth Device...')
+        return navigator.bluetooth.requestDevice(options).then(device => {
+            bluetoothDeviceDetected = device
+        }).catch(error => {
+            console.log('Requesting error: ' + error)
+        })
+    }
+
+    function read() {
+        return (bluetoothDeviceDetected ? Promise.resolve() : getDeviceInfo())
+            .then(connectGATT)
+            .then(_ => {
+                console.log('Reading acc...')
+                return gattCharacteristic.readValue()
+            })
+            .catch(error => {
+                console.log('Waiting to start reading: ' + error)
+            })
+    }
+
+    function connectGATT() {
+        if (bluetoothDeviceDetected.gatt.connected && gattCharacteristic) {
+            return Promise.resolve()
+        }
+        return bluetoothDeviceDetected.gatt.connect()
+            .then(server => {
+                console.log('Getting GATT Service...')
+                return server.getPrimaryService(bleService)
+            })
+            .then(service => {
+                console.log('Getting GATT Characteristic...')
+                return service.getCharacteristic(bleCharacteristic)
+            })
+            .then(characteristic => {
+                gattCharacteristic = characteristic
+                gattCharacteristic.addEventListener('characteristicvaluechanged',
+                    handleChangedValue)
+                document.querySelector('#startBtn').disabled = false
+                document.querySelector('#connectBtn').disabled = true
+            })
+    }
+
+    function handleChangedValue(event) {
+        let value = event.target.value.getUint8(0)
+        sensor.push(value);
+    }
+
+    function start() {
+        sensor = [];
+        startTime = Date.now();
+        if (chart) {
+            removeData(chart);
+        }
+        document.querySelector(".chart").innerHTML =
+            `<div class="box--animation">
+                <div class="path"></div>
+                <div class="nature"></div>
+                <div class="rider">
+                    <img src="./rider.svg">
+                </div>
+                <div class="wheel">
+                    <img src="./wheel.svg" class="wheel--back">
+                    <img src="./wheel.svg" class="wheel--front">
+                </div>
+            </div>`
+        gattCharacteristic.startNotifications()
+            .then(_ => {
+                console.log('Start reading...')
+                disableButtons();
+            })
+            .catch(error => {
+                console.log('[ERROR] Start: ' + error)
+            })
+
+
+
+    }
+
+    function stop() {
+        document.querySelector(".chart").innerHTML = `<canvas id="chart"></canvas> `
+
+        stopTime = Date.now();
+        gattCharacteristic.stopNotifications()
+            .then(_ => {
+                console.log('Stop reading...')
+                enableButtons();
+            })
+            .catch(error => {
+                console.log('[ERROR] Stop: ' + error)
+            })
+    }
+
+    function enableButtons() {
+        document.querySelector('#startBtn').disabled = false
+        document.querySelector('#chartBtn').disabled = false
+        document.querySelector('#downloadBtn').disabled = false
+        document.querySelector('#startBtn').disabled = false
+        document.querySelector('#stopBtn').disabled = true
+    }
+
+    function disableButtons() {
+        document.querySelector('#startBtn').disabled = true
+        document.querySelector('#chartBtn').disabled = true
+        document.querySelector('#downloadBtn').disabled = true
+        document.querySelector('#startBtn').disabled = true
+        document.querySelector('#stopBtn').disabled = false
+    }
+
+    function downloadCsv(sensorData, startTime, stopTime) {
+        const timeTotal = stopTime - startTime;
+        let csv = 'Acc [g]';
+        csv += `,Start, ${startTime}`;
+        csv += `,Stop, ${stopTime}`;
+        csv += `,Time, ${timeTotal}\n`;
+        csv += sensorData.join("\n");
+        const hiddenElement = document.createElement('a');
+        hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+        hiddenElement.target = '_blank';
+        hiddenElement.download = 'sensor_data.csv';
+        hiddenElement.click();
+    }
+
+    function createChart() {
+        const ctx = document.getElementById('chart')
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: new Array(sensor.length).fill(1).map((el, index) => index),
+                datasets: [{
+                    borderColor: "rgb(0, 143, 122)",
+                    data: [...sensor],
+                    fill: false,
+                }]
+            },
+            options: {
+                legend: {
+                    display: false,
+                },
+                scales: {
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Przyspieszenie [g]',
+                            fontSize: 16
+                        }
+                    }],
+                    xAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Odczyt [-]',
+                            fontSize: 16
+                        }
+                    }]
+                }
+            },
+        })
+    }
+
+    function removeData() {
+        chart.data.labels.pop();
+        chart.data.datasets.forEach((dataset) => {
+            dataset.data.pop();
+        });
+        chart.update();
+    }
+
+</script>
