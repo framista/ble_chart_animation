@@ -10,12 +10,11 @@
     .container {
         width: 100vw;
         min-height: 100vh;
-        margin: 10px;
         display: flex;
         flex-direction: column;
         flex-wrap: wrap;
         align-items: center;
-        justify-content: space-evenly;
+        justify-content: center;
         background-image: url("./backgroundBike.jpg");
         background-repeat: repeat;
     }
@@ -25,6 +24,7 @@
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
+        margin: 20px;
     }
 
     button {
@@ -78,18 +78,6 @@
         left: 50%;
         transform: translate(-50%, -50%);
     }
-
-    @media only screen and (max-width: 600px) {
-        .menu{
-            flex-direction: column;
-        }
-        .button {
-            width: 90%;
-        }
-        .container{
-            justify-content: center;
-        }
-    }   
 
 </style>
 
