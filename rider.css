@@ -4,14 +4,14 @@
 }
 
 .box--animation {
-    height: 500px;
-    width: 500px;
+    height: 100%;
+    width: 100%;
     background-image: url("./sky.png");
-    background-size: contain;
-    background-repeat: no-repeat;
-    /* background-position: center; */
+    background-repeat: repeat;
     position: relative;
     overflow: hidden;
+    border-radius: 10px;
+    border: 2px solid #333;
 }
 
 .path {

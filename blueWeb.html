@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="rider.css" />
+
 <style>
     * {
         margin: 0;
@@ -180,8 +182,21 @@
     function start() {
         sensor = [];
         startTime = Date.now();
-        if (chart)
+        if (chart) {
             removeData(chart);
+        }
+        document.querySelector(".chart").innerHTML =
+            `<div class="box--animation">
+                <div class="path"></div>
+                <div class="nature"></div>
+                <div class="rider">
+                    <img src="./rider.svg">
+                </div>
+                <div class="wheel">
+                    <img src="./wheel.svg" class="wheel--back">
+                    <img src="./wheel.svg" class="wheel--front">
+                </div>
+            </div>`
         gattCharacteristic.startNotifications()
             .then(_ => {
                 console.log('Start reading...')
@@ -190,9 +205,14 @@
             .catch(error => {
                 console.log('[ERROR] Start: ' + error)
             })
+
+
+
     }
 
     function stop() {
+        document.querySelector(".chart").innerHTML = `<canvas id="chart"></canvas> `
+
         stopTime = Date.now();
         gattCharacteristic.stopNotifications()
             .then(_ => {
