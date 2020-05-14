@@ -7,8 +7,8 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   height="586.66669"
-   viewBox="0 0 118.08334 73.333336"
+   height="506.66669"
+   viewBox="0 0 118.08334 63.333336"
    width="944.66669"
    version="1.1"
    id="svg6640"
@@ -50,15 +50,15 @@
      inkscape:current-layer="flat" />
   <g
      id="flat"
-     transform="translate(0,9.3333384)">
+     transform="translate(0,-0.66662962)">
     <path
-       d="M 121.55206,0.41249702 121.83929,65.01018 -0.28087222,65.214621 -0.5681002,0.61694027 Z"
+       d="M 119.19613,-1.4222488 119.48336,64.797419 -2.6368044,65.006994 -2.9240324,-1.2126721 Z"
        id="path6623"
        inkscape:connector-curvature="0"
-       style="fill:#333333;fill-opacity:1;stroke-width:1.64931941" />
+       style="fill:#333333;fill-opacity:1;stroke-width:1.66989744" />
     <g
        id="g6637"
-       transform="matrix(0.00560366,1.2703272,-2.0538738,0.00346589,124.67898,-8.4901909)"
+       transform="matrix(0.0058201,1.3022239,-2.1332028,0.00355292,127.01567,-9.4364919)"
        style="fill:#fcf05a">
       <path
          d="m 11,3 h 4 v 58 h -4 z"

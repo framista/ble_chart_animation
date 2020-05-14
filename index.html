@@ -20,11 +20,11 @@
     }
 
     .menu {
-        width: 100vw;
+        width: 100%;
         display: flex;
         justify-content: center;
         flex-wrap: wrap;
-        margin: 20px;
+        margin-bottom: 20px;
     }
 
     button {
@@ -126,10 +126,10 @@
 
     function isWebBluetoothEnabled() {
         if (!navigator.bluetooth) {
-            console.log('Web Bluetooth API is not available in this browser!')
-            return false
+            console.log('Web Bluetooth API is not available in this browser!');
+            return false;
         }
-        return true
+        return true;
     }
 
     function getDeviceInfo() {
@@ -139,97 +139,92 @@
                 { "name": deviceName }
             ]
         }
-        console.log('Requesting any Bluetooth Device...')
+        console.log('Requesting BlueNRG Device');
         return navigator.bluetooth.requestDevice(options).then(device => {
-            bluetoothDeviceDetected = device
+            bluetoothDeviceDetected = device;
         }).catch(error => {
-            console.log('[ERROR] Requesting error: ' + error)
+            console.log('[ERROR] Requesting error: ' + error);
         })
     }
 
     function read() {
         return (bluetoothDeviceDetected ? Promise.resolve() : getDeviceInfo())
             .then(connectGATT)
-            .then(_ => {
-                console.log('Reading acc...')
-                return gattCharacteristic.readValue()
+            .then(() => {
+                console.log('Reading acc');
+                return gattCharacteristic.readValue();
             })
             .catch(error => {
-                console.log('[ERROR] Waiting to start reading: ' + error)
+                console.log('[ERROR] Waiting to start reading: ' + error);
             })
     }
 
     function connectGATT() {
         if (bluetoothDeviceDetected.gatt.connected && gattCharacteristic) {
-            return Promise.resolve()
+            return Promise.resolve();
         }
         return bluetoothDeviceDetected.gatt.connect()
             .then(server => {
-                console.log('Getting GATT Service...')
-                return server.getPrimaryService(bleService)
+                console.log('Getting GATT Service');
+                return server.getPrimaryService(bleService);
             })
             .then(service => {
-                console.log('Getting GATT Characteristic...')
-                return service.getCharacteristic(bleCharacteristic)
+                console.log('Getting GATT Characteristic');
+                return service.getCharacteristic(bleCharacteristic);
             })
             .then(characteristic => {
-                gattCharacteristic = characteristic
-                gattCharacteristic.addEventListener('characteristicvaluechanged',
-                    handleChangedValue)
-                document.querySelector('#startBtn').disabled = false
-                document.querySelector('#connectBtn').disabled = true
+                gattCharacteristic = characteristic;
+                gattCharacteristic.addEventListener('characteristicvaluechanged', handleChangedValue);
+                document.querySelector('#startBtn').disabled = false;
+                document.querySelector('#connectBtn').disabled = true;
             })
     }
 
     function handleChangedValue(event) {
-        let value = event.target.value.getUint8(0)
+        let value = event.target.value.getUint8(0);
         sensor.push(value);
     }
 
     function start() {
         sensor = [];
         startTime = Date.now();
-        if (chart) {
-            removeData(chart);
-        }
         document.querySelector(".chart").innerHTML = animation;
-
         gattCharacteristic.startNotifications()
             .then(() => {
-                console.log('Start reading...')
+                console.log('Start reading');
                 disableButtons();
             })
             .catch(error => {
-                console.log('[ERROR] Start: ' + error)
+                console.log('[ERROR] Start: ' + error);
             })
     }
 
     function stop() {
-        document.querySelector(".chart").innerHTML = `<canvas id="chart"></canvas> `
+        document.querySelector(".chart").innerHTML = `<canvas id="chart"></canvas> `;
         stopTime = Date.now();
         gattCharacteristic.stopNotifications()
             .then(_ => {
-                console.log('Stop reading...')
+                console.log('Stop reading');
                 enableButtons();
             })
             .catch(error => {
-                console.log('[ERROR] Stop: ' + error)
-            })
+                console.log('[ERROR] Stop: ' + error);
+            });
         createChart();
     }
 
     function enableButtons() {
-        document.querySelector('#startBtn').disabled = false
-        document.querySelector('#downloadBtn').disabled = false
-        document.querySelector('#startBtn').disabled = false
-        document.querySelector('#stopBtn').disabled = true
+        document.querySelector('#startBtn').disabled = false;
+        document.querySelector('#downloadBtn').disabled = false;
+        document.querySelector('#startBtn').disabled = false;
+        document.querySelector('#stopBtn').disabled = true;
     }
 
     function disableButtons() {
-        document.querySelector('#startBtn').disabled = true
-        document.querySelector('#downloadBtn').disabled = true
-        document.querySelector('#startBtn').disabled = true
-        document.querySelector('#stopBtn').disabled = false
+        document.querySelector('#startBtn').disabled = true;
+        document.querySelector('#downloadBtn').disabled = true;
+        document.querySelector('#startBtn').disabled = true;
+        document.querySelector('#stopBtn').disabled = false;
     }
 
     function downloadCsv(sensorData, startTime, stopTime) {
