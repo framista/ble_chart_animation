@@ -118,7 +118,7 @@
             </div>
         </div>`
     document.querySelector('#connectBtn').addEventListener('click', () => {
-        if (isWebBluetoothEnabled()) { read() }
+        if (isWebBluetoothEnabled()) { connectBLE() }
     })
     document.querySelector('#startBtn').addEventListener('click', event => start());
     document.querySelector('#stopBtn').addEventListener('click', event => stop());
@@ -147,15 +147,11 @@
         })
     }
 
-    function read() {
+    function connectBLE() {
         return (bluetoothDeviceDetected ? Promise.resolve() : getDeviceInfo())
             .then(connectGATT)
-            .then(() => {
-                console.log('Reading acc');
-                return gattCharacteristic.readValue();
-            })
             .catch(error => {
-                console.log('[ERROR] Waiting to start reading: ' + error);
+                console.log('[ERROR] Connect: ' + error);
             })
     }
 
@@ -200,7 +196,7 @@
     }
 
     function stop() {
-        document.querySelector(".chart").innerHTML = `<canvas id="chart"></canvas> `;
+        document.querySelector(".chart").innerHTML = `<canvas id="chart"></canvas>`;
         stopTime = Date.now();
         gattCharacteristic.stopNotifications()
             .then(_ => {

@@ -7,10 +7,10 @@ App to getting data with bluetooth communication, creating chart with the data s
 ## Features
 * Web Bluetooth
 * generate csv file
-* create chart
+* create chart - Chart.js
 * create animation - rider
 ## Demo
-App to using bluetooth communication:
-https://framista.github.io/ble_chart_animation/index.html
-Animation with rider: 
+App to using bluetooth communication: <br/>
+https://framista.github.io/ble_chart_animation/index.html <br/>
+Animation with rider: <br/>
 https://framista.github.io/ble_chart_animation/animateRider.html
