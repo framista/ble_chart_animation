@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title></title>
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+    <script src="https://d3js.org/d3-dsv.v1.min.js"></script>
+    <script src="https://d3js.org/d3-fetch.v1.min.js"></script>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      .chart {
+        width: 80%;
+        min-width: 250px;
+        max-width: 970px;
+        max-height: 480px;
+        height: 500px;
+        position: relative;
+        padding: 10px 10px;
+        background: white;
+        border-radius: 10px;
+        border: 2px solid #008f7a;
+      }
+      #chart {
+        width: 90%;
+        height: 90%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      form {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+      }
+      div {
+        margin: 10px;
+      }
+      input {
+        outline: none;
+        border: 2px solid #008f7a;
+        padding: 5px;
+        border-radius: 5px;
+      }
+      input[type='submit'] {
+        padding: 0.7em 2em;
+        background-color: #008f7a;
+        color: white;
+        font-weight: 600;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <form>
+      <select>
+        <option>rower_bez_1.csv</option>
+        <option>rower_bez_2.csv</option>
+        <option>rower_kask_1.csv</option>
+        <option>rower_kask_2.csv</option>
+      </select>
+      <div>
+        <label for="start">Początek</label>
+        <input type="number" id="start" value="0" />
+      </div>
+      <div>
+        <label for="end">Koniec</label>
+        <input type="number" id="end" value="1000" />
+      </div>
+      <input id="submit" type="submit" value="Wykres" />
+    </form>
+    <div class="chart">
+      <canvas id="chart"></canvas>
+    </div>
+    <script src="app.js" async defer></script>
+  </body>
+</html>
